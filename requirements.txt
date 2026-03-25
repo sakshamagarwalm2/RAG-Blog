@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+streamlit
+pymongo[srv]
+python-dotenv
+google-generativeai
+faiss-cpu
+numpy
+pydantic
+httpx
