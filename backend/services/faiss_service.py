@@ -11,6 +11,8 @@ load_dotenv()
 _FAISS_INDEX_PATH = os.getenv("FAISS_INDEX_PATH", "faiss_index")
 _CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "500"))
 _CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "50"))
+_VIDEO_CHUNK_SIZE = int(os.getenv("VIDEO_CHUNK_SIZE", "600"))
+_VIDEO_CHUNK_OVERLAP = int(os.getenv("VIDEO_CHUNK_OVERLAP", "80"))
 _TOP_K_RESULTS = int(os.getenv("TOP_K_RESULTS", "5"))
 
 
@@ -42,7 +44,7 @@ def _normalize(v: np.ndarray) -> np.ndarray:
     return v / norm
 
 
-def build_index(blogs: list[dict], embed_fn: Callable[[str], list[float]]) -> Tuple[int, int]:
+def build_index(blogs: list[dict], videos: list[dict], embed_fn: Callable[[str], list[float]]) -> dict:
     Path(_FAISS_INDEX_PATH).mkdir(parents=True, exist_ok=True)
     
     all_chunks = []
@@ -56,11 +58,32 @@ def build_index(blogs: list[dict], embed_fn: Callable[[str], list[float]]) -> Tu
             embedding = embed_fn(chunk_content)
             all_chunks.append(embedding)
             all_metadata.append({
-                "blog_id": blog["id"],
+                "source_type": "blog",
+                "source_id": blog["id"],
                 "title": blog.get("title", ""),
                 "url": blog.get("url", ""),
                 "chunk_text": chunk_content,
-                "chunk_index": chunk_idx
+                "chunk_index": chunk_idx,
+                "thumbnail_url": None
+            })
+    
+    for video in videos:
+        summary = video.get("summary", "")
+        chunks = chunk_text(summary, size=_VIDEO_CHUNK_SIZE, overlap=_VIDEO_CHUNK_OVERLAP)
+        
+        for chunk_idx, chunk_content in enumerate(chunks):
+            embedding = embed_fn(chunk_content)
+            all_chunks.append(embedding)
+            all_metadata.append({
+                "source_type": "video",
+                "source_id": video["id"],
+                "video_id": video.get("video_id", ""),
+                "title": video.get("title", ""),
+                "url": f"https://www.youtube.com/watch?v={video.get('video_id', '')}",
+                "chunk_text": chunk_content,
+                "chunk_index": chunk_idx,
+                "thumbnail_url": video.get("thumbnail_url", ""),
+                "channel": video.get("channel", "")
             })
     
     if not all_chunks:
@@ -80,9 +103,15 @@ def build_index(blogs: list[dict], embed_fn: Callable[[str], list[float]]) -> Tu
     with open(os.path.join(_FAISS_INDEX_PATH, "metadata.json"), "w", encoding="utf-8") as f:
         json.dump(all_metadata, f, ensure_ascii=False)
     
-    blogs_count = len(set(m["blog_id"] for m in all_metadata)) if all_metadata else 0
+    blogs_count = len(blogs)
+    videos_count = len(videos)
+    total_chunks = len(all_chunks)
     
-    return blogs_count, len(all_chunks)
+    return {
+        "blogs": blogs_count,
+        "videos": videos_count,
+        "total_chunks": total_chunks
+    }
 
 
 def load_index() -> Tuple[faiss.Index, list[dict]]:

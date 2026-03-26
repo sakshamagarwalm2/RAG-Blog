@@ -37,3 +37,28 @@ try:
     print(f"Gemini API connected ✓  (embedding dim: {dim})")
 except Exception as e:
     print(f"Gemini API FAILED ✗  {e}")
+
+print("\nTesting video collection...")
+try:
+    from pymongo import MongoClient
+    client = MongoClient(os.getenv("MONGO_URI"), serverSelectionTimeoutMS=5000)
+    db = client[os.getenv("MONGO_DB_NAME")]
+    videos_collection = db[os.getenv("VIDEOS_COLLECTION_NAME", "videos")]
+    count = videos_collection.count_documents({})
+    print(f"Videos collection connected ✓  (found {count} videos)")
+except Exception as e:
+    print(f"Videos collection check FAILED ✗  {e}")
+
+print("\nTesting youtube-transcript-api...")
+try:
+    from youtube_transcript_api import YouTubeTranscriptApi
+    print("youtube-transcript-api installed ✓")
+except ImportError:
+    print("youtube-transcript-api NOT installed ✗  Run: pip install youtube-transcript-api")
+
+print("\nTesting pytube...")
+try:
+    import pytube
+    print("pytube installed ✓")
+except ImportError:
+    print("pytube NOT installed ✗  Run: pip install pytube")

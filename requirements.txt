@@ -8,3 +8,5 @@ faiss-cpu
 numpy
 pydantic
 httpx
+youtube-transcript-api
+pytube

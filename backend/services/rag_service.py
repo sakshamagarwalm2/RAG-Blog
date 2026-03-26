@@ -1,7 +1,7 @@
 import os
 import google.generativeai as genai
 from dotenv import load_dotenv
-from backend.models.schemas import ChatResponse
+from backend.models.schemas import ChatResponse, SourceItem
 from backend.services import embeddings_service, faiss_service
 
 load_dotenv()
@@ -9,13 +9,13 @@ load_dotenv()
 _GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 _TOP_K_RESULTS = int(os.getenv("TOP_K_RESULTS", "5"))
 
-PROMPT_TEMPLATE = """You are a helpful assistant that answers questions based on blog articles.
+PROMPT_TEMPLATE = """You are a helpful assistant that answers questions based on blog articles and YouTube videos.
 
 Use ONLY the information provided in the context below to answer the question.
-If the answer is not in the context, say exactly: "I don't have enough information in the available blogs to answer this."
+If the answer is not in the context, say exactly: "I don't have enough information in the available content to answer this."
 Do NOT make up information. Do NOT use external knowledge.
 
-Context from relevant blog articles:
+Context from relevant blog articles and videos:
 ---
 {context}
 ---
@@ -40,9 +40,14 @@ async def answer_query(query: str, chat_history: list[dict]) -> ChatResponse:
         if url not in unique_sources:
             unique_sources[url] = {
                 "title": r["title"],
-                "url": url
+                "url": url,
+                "source_type": r.get("source_type", "blog"),
+                "thumbnail_url": r.get("thumbnail_url"),
+                "video_id": r.get("video_id"),
+                "channel": r.get("channel")
             }
-    sources = list(unique_sources.values())
+    
+    sources = [SourceItem(**src) for src in unique_sources.values()]
     
     context = "\n---\n".join(r["chunk_text"] for r in results)
     

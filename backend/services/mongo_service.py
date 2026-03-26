@@ -10,6 +10,7 @@ load_dotenv()
 _MONGO_URI = os.getenv("MONGO_URI")
 _MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
 _MONGO_COLLECTION_NAME = os.getenv("MONGO_COLLECTION_NAME")
+VIDEOS_COLLECTION = os.getenv("VIDEOS_COLLECTION_NAME", "videos")
 
 if not all([_MONGO_URI, _MONGO_DB_NAME, _MONGO_COLLECTION_NAME]):
     raise RuntimeError("MongoDB configuration missing. Check .env file.")
@@ -31,6 +32,11 @@ def _get_client() -> MongoClient:
 def _get_collection():
     client = _get_client()
     return client[_MONGO_DB_NAME][_MONGO_COLLECTION_NAME]
+
+
+def _get_videos_collection():
+    client = _get_client()
+    return client[_MONGO_DB_NAME][VIDEOS_COLLECTION]
 
 
 def _serialize_doc(doc: dict) -> dict:
@@ -73,3 +79,35 @@ def delete_blog(blog_id: str) -> bool:
 def get_blogs_count() -> int:
     collection = _get_collection()
     return collection.count_documents({})
+
+
+def get_all_videos() -> list[dict]:
+    collection = _get_videos_collection()
+    cursor = collection.find().sort("created_at", -1)
+    return [_serialize_doc(doc) for doc in cursor]
+
+
+def create_video(video_data: dict) -> dict:
+    video_data["created_at"] = datetime.utcnow()
+    collection = _get_videos_collection()
+    result = collection.insert_one(video_data)
+    video_data["id"] = str(result.inserted_id)
+    video_data.pop("_id", None)
+    return video_data
+
+
+def delete_video(video_id: str) -> bool:
+    from bson import ObjectId
+    collection = _get_videos_collection()
+    result = collection.delete_one({"_id": ObjectId(video_id)})
+    return result.deleted_count > 0
+
+
+def get_videos_count() -> int:
+    collection = _get_videos_collection()
+    return collection.count_documents({})
+
+
+def video_exists(video_id: str) -> bool:
+    collection = _get_videos_collection()
+    return collection.find_one({"video_id": video_id}) is not None

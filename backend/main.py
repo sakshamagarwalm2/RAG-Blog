@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.routes import chat_router, blogs_router, ingest_router
+from backend.routes.videos import router as videos_router
 
 app = FastAPI(title="RAG Blog Chat API", version="1.0.0")
 
@@ -14,6 +15,7 @@ app.add_middleware(
 app.include_router(chat_router)
 app.include_router(blogs_router)
 app.include_router(ingest_router)
+app.include_router(videos_router)
 
 
 @app.get("/health")

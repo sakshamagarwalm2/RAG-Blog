@@ -18,6 +18,37 @@ BACKEND_URL = "http://localhost:8000"
 
 st.markdown("---")
 
+st.subheader("🎬 YouTube Video Debug")
+
+col_test1, col_test2 = st.columns([3, 1])
+
+with col_test1:
+    test_url = st.text_input("YouTube URL:", value="https://youtu.be/15OWXY88OP4", key="test_url_input")
+    test_tags = st.text_input("Tags:", value="test, debug", key="test_tags_input")
+
+with col_test2:
+    st.caption(" ")
+    if st.button("Test Video URL", use_container_width=True):
+        from backend.services import youtube_service
+        
+        try:
+            video_id = youtube_service.extract_video_id(test_url)
+            st.info(f"Video ID: {video_id}")
+            
+            meta = youtube_service.get_video_metadata(test_url)
+            st.success(f"Title: {meta['title']}")
+            st.caption(f"Channel: {meta['channel']}")
+            st.image(meta['thumbnail_url'], width=280)
+            
+            with st.spinner("Fetching transcript..."):
+                transcript, word_count = youtube_service.fetch_transcript(video_id)
+                st.success(f"Transcript fetched: {word_count} words")
+                st.text_area("Preview:", transcript[:500] + "...", height=100)
+        except Exception as e:
+            st.error(f"Error: {str(e)[:200]}")
+
+st.markdown("---")
+
 with st.form("debug_form"):
     st.subheader("Send a Query")
     query = st.text_input("Question:", value="What is this blog about?")
