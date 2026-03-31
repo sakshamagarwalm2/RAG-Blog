@@ -11,56 +11,31 @@ A RAG (Retrieval-Augmented Generation) chat application with MongoDB Atlas, FAIS
 
 ## Prerequisites
 
+### Python (for Streamlit Frontend and Embedding Generation)
+
+Ensure Python 3.10+ is installed. On Windows, make sure to add Python to your system's PATH during installation.
+
+To check your Python version:
 ```bash
-python3 --version   # need 3.10+
-pip3 --version
+python --version
+```
+If `python` command doesn't work, try `python3 --version`.
+
+### Node.js and npm (for NestJS Backend)
+
+Ensure Node.js (which includes npm) is installed.
+```bash
+node --version
+npm --version
 ```
 
 ## Quick Start (Recommended)
 
-### Use PowerShell Scripts
+### Manual Setup
 
-```powershell
-# Navigate to scripts folder
-cd scripts
+#### 1. Configure Environment
 
-# Run the main menu script
-.\run.ps1
-```
-
-Options:
-- **[1] Setup** - Create venv & install dependencies
-- **[2] Test connections** - Verify MongoDB & Gemini
-- **[3] Build index** - Create FAISS index
-- **[6] Run all** - Start both servers together
-
-### Manual Setup (Alternative)
-
-#### 1. Create virtual environment
-
-```bash
-# Create venv
-python3 -m venv venv
-
-# Activate on macOS/Linux:
-source venv/bin/activate
-
-# Activate on Windows (Command Prompt):
-venv\Scripts\activate.bat
-
-# Activate on Windows (PowerShell):
-venv\Scripts\Activate.ps1
-```
-
-#### 2. Install dependencies
-
-```bash
-# venv must be activated
-pip install -r requirements.txt
-```
-
-#### 3. Configure environment
-
+Copy the example environment file and fill in your credentials:
 ```bash
 cp .env.example .env
 ```
@@ -74,34 +49,80 @@ Edit `.env` with your credentials:
 | `MONGO_COLLECTION_NAME` | Collection name (e.g., `blogs`) |
 | `GEMINI_API_KEY` | https://aistudio.google.com/app/apikey |
 
-#### 4. Test connections
+#### 2. Setup Python Virtual Environment and Dependencies
 
 ```bash
-python scripts/test_connection.py
+# Create venv
+python -m venv venv
+
+# Activate on Windows (Command Prompt):
+venv\Scripts\activate.bat
+# Activate on Windows (PowerShell):
+venv\Scripts\Activate.ps1
+# Activate on macOS/Linux:
+source venv/bin/activate
 ```
 
-#### 5. Build FAISS index
+Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+#### 3. Setup NestJS Backend and Dependencies
+
+```bash
+cd backend
+npm install
+cd ..
+```
+
+#### 4. Build FAISS index
 
 ```bash
 python scripts/ingest.py
 ```
 
-#### 6. Start servers
+#### 5. Start Servers
 
-**Option A - Run both servers:**
+**In one terminal, start the NestJS Backend:**
 ```bash
-python scripts/run.py
-# Select option 6
+cd backend
+npm run start:dev
 ```
+The NestJS backend will typically run on `http://localhost:3000`.
 
-**Option B - Manual start:**
+**In a separate terminal, start the Streamlit Frontend:**
 ```bash
-# Terminal 1 - Backend
-uvicorn backend.main:app --reload --port 8000
-
-# Terminal 2 - Frontend
+# Make sure you are in the project root directory (e.g., D:\Recks\RAG-Blog)
+# Activate venv if you haven't already in this terminal (e.g., venv\Scripts\Activate.ps1)
 streamlit run frontend/app.py --server.port 8501
 ```
+The Streamlit frontend will typically run on `http://localhost:8501`.
+
+## NestJS Backend API Endpoints
+
+The NestJS backend provides the following API endpoints:
+
+### `blogs`
+-   **GET /blogs**: Get all blogs.
+-   **POST /blogs**: Add a new blog.
+    *   Body: `{ "title": "string", "content": "string", "url": "string", "tags"?: string[] }`
+-   **DELETE /blogs/:id**: Delete a blog.
+
+### `chat`
+-   **POST /chat**: Send a chat message and get a RAG-based response.
+    *   Body: `{ "query": "string", "chat_history"?: [{ "role": "string", "content": "string" }] }`
+
+### `ingest`
+-   **POST /ingest/rebuild**: Rebuild the vector index from all blogs and videos.
+
+### `videos`
+-   **GET /videos**: Get all videos.
+-   **POST /videos**: Add a new video by URL.
+    *   Body: `{ "youtube_url": "string", "tags"?: string[] }`
+-   **POST /videos/manual**: Add a video with manual transcript.
+    *   Body: `{ "youtube_url": "string", "transcript_raw": "string", "tags"?: string[] }`
+-   **DELETE /videos/:id**: Delete a video.
 
 ## Usage
 
@@ -123,46 +144,50 @@ streamlit run frontend/app.py --server.port 8501
 ```
 rag-blog-chat/
 ├── .env                    # Secrets (create from .env.example)
-├── requirements.txt        # Python dependencies
+├── requirements.txt        # Python dependencies for frontend and Python services
 ├── README.md
 │
-├── backend/
-│   ├── main.py            # FastAPI entry point
-│   ├── models/            # Pydantic schemas
-│   ├── services/          # Business logic
-│   │   ├── mongo_service.py
-│   │   ├── embeddings_service.py
-│   │   ├── faiss_service.py
-│   │   └── rag_service.py
-│   └── routes/            # API endpoints
+├── backend/                # NestJS Backend
+│   ├── package.json        # Node.js dependencies and scripts
+│   ├── src/                # NestJS source code
+│   │   ├── main.ts         # Entry point
+│   │   ├── app.module.ts
+│   │   ├── blogs/          # Blog related modules
+│   │   ├── chat/           # Chat related modules
+│   │   ├── ingest/         # Ingest related modules
+│   │   └── videos/         # Video related modules
+│   └── tsconfig.json       # TypeScript configuration
 │
-├── frontend/
-│   ├── app.py             # Chat UI
+├── frontend/               # Streamlit Frontend
+│   ├── app.py              # Chat UI
 │   └── pages/
 │       └── 1_Blog_Manager.py
 │
-└── scripts/
-    ├── run.py             # Interactive menu (Python)
-    ├── run.ps1            # Interactive menu (PowerShell)
-    ├── launch.ps1         # Quick launcher
-    ├── test_connection.py  # Test MongoDB & Gemini
+└── scripts/                # Utility scripts
+    ├── run.ps1             # PowerShell interactive menu
+    ├── test_connection.py  # Test MongoDB & Gemini connection
     └── ingest.py           # Build FAISS index
 ```
 
 ## Troubleshooting
 
+### Python was not found
+- Ensure Python 3.10+ is installed and added to your system PATH.
+- On Windows, try using `python` instead of `python3` in commands.
+
 ### MongoDB connection failed
-- Verify `MONGO_URI` in `.env` is correct
-- Check MongoDB Atlas IP whitelist allows your IP
+- Verify `MONGO_URI` in `.env` is correct.
+- Check MongoDB Atlas IP whitelist allows your IP.
 
 ### Gemini API failed
-- Verify `GEMINI_API_KEY` in `.env`
-- Check API key has proper permissions
+- Verify `GEMINI_API_KEY` in `.env`.
+- Check API key has proper permissions.
 
 ### FAISS index not found
-- Run `python scripts/ingest.py`
-- Or click "Re-index Blogs" in the Streamlit sidebar
+- Run `python scripts/ingest.py`.
+- Or click "Re-index Blogs" in the Streamlit sidebar.
 
 ### Port already in use
-- Change port in command: `--port 8502`
-- Update `BACKEND_URL` in `.env` if backend port changes
+- For NestJS, you might need to adjust the port in `main.ts` or through environment variables if applicable.
+- For Streamlit, change port in command: `--server.port 8502`.
+- Update `BACKEND_URL` in `.env` if backend port changes.

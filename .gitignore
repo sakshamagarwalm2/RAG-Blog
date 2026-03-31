@@ -1,7 +1,6 @@
 # Environment
 .env
 venv/
-venv
 .env.local
 
 # FAISS index
@@ -35,6 +34,11 @@ ENV/
 env/
 .venv/
 
+# Node.js / TypeScript
+node_modules/
+dist/
+*.tsbuildinfo
+
 # IDE
 .vscode/
 .idea/
@@ -48,3 +52,4 @@ Thumbs.db
 
 # Logs
 *.log
+backend/node_modules

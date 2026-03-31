@@ -23,14 +23,15 @@ with st.sidebar:
     if st.button("⚙️ Re-index Blogs & Videos", use_container_width=True):
         with st.spinner("Re-indexing..."):
             try:
-                r = httpx.post(f"{BACKEND_URL}/ingest", timeout=120)
+                r = httpx.post(f"{BACKEND_URL}/ingest/rebuild", timeout=120)
+                r.raise_for_status()
                 data = r.json()
-                st.success(f"Indexed {data['blogs_indexed']} blogs, {data['chunks_created']} chunks")
+                st.success(f"Indexed {data['blogs']} blogs, {data['total_chunks']} chunks")
             except Exception as e:
                 st.error(f"Failed: {e}")
     
     st.divider()
-    st.caption("After adding new blogs or videos, click Re-index or run:\n`python scripts/ingest.py`")
+    st.caption("After adding new blogs or videos, click 'Re-index Blogs & Videos' above to update the search index.")
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
