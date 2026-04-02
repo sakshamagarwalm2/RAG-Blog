@@ -33,7 +33,7 @@ Answer in a clear, helpful way. Do not list sources in your answer — they will
     private configService: ConfigService,
     private embeddingsService: EmbeddingsService,
     private vectorStoreService: VectorStoreService,
-  ) {}
+  ) { }
 
   onModuleInit() {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
