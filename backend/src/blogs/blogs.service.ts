@@ -25,7 +25,21 @@ export class BlogsService {
     return !!result;
   }
 
-  async getCount(): Promise<number> {
-    return this.blogModel.countDocuments().exec();
+  async findIndexed(): Promise<Blog[]> {
+    return this.blogModel.find({ indexed_at: { $ne: null } }).sort({ created_at: -1 }).exec();
+  }
+
+  async updateIndexedTimestamp(id: string, timestamp: Date | null): Promise<Blog> {
+    return this.blogModel.findByIdAndUpdate(id, { indexed_at: timestamp }, { returnDocument: 'after' }).exec();
+  }
+
+  async findUnindexed(): Promise<Blog[]> {
+    return this.blogModel.find({ indexed_at: null }).sort({ created_at: -1 }).exec();
+  }
+
+  async setAllBlogsIndexedTimestamp(timestamp: Date | null): Promise<any> {
+    return this.blogModel.updateMany({}, { indexed_at: timestamp }).exec();
   }
 }
+
+

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from backend.services import mongo_service, youtube_service
-from backend.models.schemas import VideoCreate, VideoResponse
+from services import mongo_service, youtube_service
+from models.schemas import VideoCreate, VideoResponse
 from pydantic import BaseModel
 import google.generativeai as genai
 import os

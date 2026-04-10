@@ -21,7 +21,7 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(8000);
-  console.log('RAG Blog Chat API started');
+  console.log('RAG Blog Chat API started on port 8000');
   console.log('Docs: http://localhost:8000/docs');
 }
 bootstrap();

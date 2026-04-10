@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from backend.models.schemas import IngestResponse
-from backend.services import mongo_service, embeddings_service, faiss_service
+from models.schemas import IngestResponse
+from services import mongo_service, embeddings_service, faiss_service
 
 router = APIRouter(prefix="/ingest", tags=["ingest"])
 

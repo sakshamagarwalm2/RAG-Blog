@@ -62,7 +62,9 @@ def get_blog_by_id(blog_id: str) -> Optional[dict]:
 
 
 def create_blog(blog_data: dict) -> dict:
-    blog_data["created_at"] = datetime.utcnow()
+    now = datetime.utcnow()
+    blog_data["created_at"] = now
+    blog_data["updated_at"] = now
     collection = _get_collection()
     result = collection.insert_one(blog_data)
     doc = collection.find_one({"_id": result.inserted_id})
@@ -88,7 +90,9 @@ def get_all_videos() -> list[dict]:
 
 
 def create_video(video_data: dict) -> dict:
-    video_data["created_at"] = datetime.utcnow()
+    now = datetime.utcnow()
+    video_data["created_at"] = now
+    video_data["updated_at"] = now
     collection = _get_videos_collection()
     result = collection.insert_one(video_data)
     video_data["id"] = str(result.inserted_id)

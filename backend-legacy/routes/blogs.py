@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from backend.models.schemas import BlogCreate, BlogResponse
-from backend.services import mongo_service
+from models.schemas import BlogCreate, BlogResponse
+from services import mongo_service
 
 router = APIRouter(prefix="/blogs", tags=["blogs"])
 

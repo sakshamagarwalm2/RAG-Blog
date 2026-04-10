@@ -8,9 +8,12 @@ if sys.prefix == sys.base_prefix:
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add the legacy backend to path so we can import its services
+legacy_path = str(Path(__file__).parent.parent / "backend-legacy")
+if legacy_path not in sys.path:
+    sys.path.insert(0, legacy_path)
 
-from backend.services import mongo_service, embeddings_service, faiss_service
+from services import mongo_service, embeddings_service, faiss_service
 
 blogs = mongo_service.get_all_blogs()
 print(f"Found {len(blogs)} blogs in MongoDB")

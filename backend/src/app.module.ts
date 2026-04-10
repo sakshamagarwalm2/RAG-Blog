@@ -7,13 +7,14 @@ import { ChatModule } from './chat/chat.module';
 import { IngestModule } from './ingest/ingest.module';
 import { EmbeddingsModule } from './embeddings/embeddings.module';
 import { VectorStoreModule } from './vector-store/vector-store.module';
+import { IndexingModule } from './indexing/indexing.module';
 import { AppController } from './app.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '../.env',
+      envFilePath: ['.env', '../.env'],
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -29,6 +30,7 @@ import { AppController } from './app.controller';
     IngestModule,
     EmbeddingsModule,
     VectorStoreModule,
+    IndexingModule,
   ],
   controllers: [AppController],
 })

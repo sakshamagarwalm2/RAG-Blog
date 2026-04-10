@@ -1,8 +1,8 @@
 import os
 import google.generativeai as genai
 from dotenv import load_dotenv
-from backend.models.schemas import ChatResponse, SourceItem
-from backend.services import embeddings_service, faiss_service
+from models.schemas import ChatResponse, SourceItem
+from services import embeddings_service, faiss_service
 
 load_dotenv()
 

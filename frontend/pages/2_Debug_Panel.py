@@ -29,7 +29,11 @@ with col_test1:
 with col_test2:
     st.caption(" ")
     if st.button("Test Video URL", use_container_width=True):
-        from backend.services import youtube_service
+        import sys
+        legacy_path = str(Path(__file__).parent.parent.parent / "backend-legacy")
+        if legacy_path not in sys.path:
+            sys.path.insert(0, legacy_path)
+        from services import youtube_service
         
         try:
             video_id = youtube_service.extract_video_id(test_url)

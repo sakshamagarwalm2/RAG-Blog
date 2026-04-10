@@ -31,73 +31,67 @@ npm --version
 
 ## Quick Start (Recommended)
 
-### Manual Setup
+To get started quickly, use the provided `start_all_servers.bat` script:
 
-#### 1. Configure Environment
+1.  **Configure Environment:**
+    Copy the example environment file and fill in your credentials:
+    ```bash
+    cp .env.example .env
+    ```
+    Edit `.env` with your credentials:
 
-Copy the example environment file and fill in your credentials:
-```bash
-cp .env.example .env
-```
+    | Key | Where to get it |
+    |-----|-----------------|
+    | `MONGO_URI` | MongoDB Atlas → Connect → Drivers → copy connection string |
+    | `MONGO_DB_NAME` | Database name (e.g., `blog_db`) |
+    | `MONGO_COLLECTION_NAME` | Collection name (e.g., `blogs`) |
+    | `GEMINI_API_KEY` | https://aistudio.google.com/app/apikey |
 
-Edit `.env` with your credentials:
+2.  **Setup Python Virtual Environment and Dependencies:**
 
-| Key | Where to get it |
-|-----|-----------------|
-| `MONGO_URI` | MongoDB Atlas → Connect → Drivers → copy connection string |
-| `MONGO_DB_NAME` | Database name (e.g., `blog_db`) |
-| `MONGO_COLLECTION_NAME` | Collection name (e.g., `blogs`) |
-| `GEMINI_API_KEY` | https://aistudio.google.com/app/apikey |
+    ```bash
+    # Create venv
+    python -m venv venv
 
-#### 2. Setup Python Virtual Environment and Dependencies
+    # Activate on Windows (Command Prompt):
+    venv\Scripts\activate.bat
+    # Activate on Windows (PowerShell):
+    venv\Scripts\Activate.ps1
+    # Activate on macOS/Linux:
+    source venv/bin/activate
+    ```
 
-```bash
-# Create venv
-python -m venv venv
+    Install Python dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-# Activate on Windows (Command Prompt):
-venv\Scripts\activate.bat
-# Activate on Windows (PowerShell):
-venv\Scripts\Activate.ps1
-# Activate on macOS/Linux:
-source venv/bin/activate
-```
+3.  **Setup NestJS Backend and Dependencies:**
 
-Install Python dependencies:
-```bash
-pip install -r requirements.txt
-```
+    ```bash
+    cd backend
+    npm install
+    cd ..
+    ```
 
-#### 3. Setup NestJS Backend and Dependencies
+4.  **Build FAISS index (initial setup):**
 
-```bash
-cd backend
-npm install
-cd ..
-```
+    ```bash
+    python scripts/ingest.py
+    ```
 
-#### 4. Build FAISS index
+5.  **Start All Servers:**
 
-```bash
-python scripts/ingest.py
-```
+    From the project root directory, run the following script:
+    ```bash
+    # For Command Prompt:
+    start_all_servers.bat
+    # For PowerShell:
+    .\start_all_servers.bat
+    ```
+    This script will activate the Python virtual environment, then open new command prompt windows to start both the NestJS backend (on `http://localhost:3000`) and the Streamlit frontend (on `http://localhost:8501`).
+    Monitor the new windows for startup messages.
 
-#### 5. Start Servers
-
-**In one terminal, start the NestJS Backend:**
-```bash
-cd backend
-npm run start:dev
-```
-The NestJS backend will typically run on `http://localhost:3000`.
-
-**In a separate terminal, start the Streamlit Frontend:**
-```bash
-# Make sure you are in the project root directory (e.g., D:\Recks\RAG-Blog)
-# Activate venv if you haven't already in this terminal (e.g., venv\Scripts\Activate.ps1)
-streamlit run frontend/app.py --server.port 8501
-```
-The Streamlit frontend will typically run on `http://localhost:8501`.
 
 ## NestJS Backend API Endpoints
 
@@ -115,6 +109,12 @@ The NestJS backend provides the following API endpoints:
 
 ### `ingest`
 -   **POST /ingest/rebuild**: Rebuild the vector index from all blogs and videos.
+
+### `indexing`
+-   **GET /indexing/status/blogs**: Get the indexing status of all blogs (indexed and unindexed).
+-   **POST /indexing/reindex**: Trigger a re-indexing process.
+    *   Query Parameters: `force` (optional, boolean, defaults to `false`). If `true`, clears and rebuilds the entire index.
+
 
 ### `videos`
 -   **GET /videos**: Get all videos.
@@ -139,6 +139,13 @@ The NestJS backend provides the following API endpoints:
 2. View sources by expanding the "Sources" section
 3. Chat history is maintained within the session
 
+### Indexing Status
+
+1. Go to the "Indexing Status" page (in Streamlit sidebar).
+2. View a list of currently indexed and unindexed blogs.
+3. Trigger a full re-index or force a complete rebuild of the index using the provided buttons.
+
+
 ## Project Structure
 
 ```
@@ -146,6 +153,7 @@ rag-blog-chat/
 ├── .env                    # Secrets (create from .env.example)
 ├── requirements.txt        # Python dependencies for frontend and Python services
 ├── README.md
+├── start_all_servers.bat   # Script to start all backend and frontend servers
 │
 ├── backend/                # NestJS Backend
 │   ├── package.json        # Node.js dependencies and scripts
@@ -155,6 +163,7 @@ rag-blog-chat/
 │   │   ├── blogs/          # Blog related modules
 │   │   ├── chat/           # Chat related modules
 │   │   ├── ingest/         # Ingest related modules
+│   │   ├── indexing/       # Indexing status and re-indexing endpoints
 │   │   └── videos/         # Video related modules
 │   └── tsconfig.json       # TypeScript configuration
 │

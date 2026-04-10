@@ -14,6 +14,7 @@ export interface Metadata {
   video_id?: string;
   channel?: string;
   score?: number;
+  updated_at?: string;
 }
 
 @Injectable()
@@ -49,13 +50,77 @@ export class VectorStoreService implements OnModuleInit {
     this.index = items.map((item) => this.normalize(item.embedding));
     this.metadata = items.map((item) => item.metadata);
 
+    this.saveIndex();
+
+    return { total_chunks: this.metadata.length };
+  }
+
+  async addToIndex(
+    items: { embedding: number[]; metadata: Metadata }[],
+  ): Promise<{ total_chunks: number }> {
+    if (!fs.existsSync(this.indexPath)) {
+      fs.mkdirSync(this.indexPath, { recursive: true });
+    }
+
+    // Load existing index if not already loaded
+    if (this.index.length === 0) {
+      this.loadIndex();
+    }
+
+    const newIndex = items.map((item) => this.normalize(item.embedding));
+    const newMetadata = items.map((item) => item.metadata);
+
+    this.index = [...this.index, ...newIndex];
+    this.metadata = [...this.metadata, ...newMetadata];
+
+    this.saveIndex();
+
+    return { total_chunks: this.metadata.length };
+  }
+
+  async removeFromIndex(source_id: string): Promise<void> {
+    if (this.index.length === 0) {
+      this.loadIndex();
+    }
+
+    const indicesToKeep = this.metadata
+      .map((m, i) => (m.source_id === source_id ? -1 : i))
+      .filter((i) => i !== -1);
+
+    if (indicesToKeep.length === this.metadata.length) return;
+
+    this.index = indicesToKeep.map((i) => this.index[i]);
+    this.metadata = indicesToKeep.map((i) => this.metadata[i]);
+
+    this.saveIndex();
+  }
+
+  getIndexedIds(): string[] {
+    if (this.index.length === 0) {
+      this.loadIndex();
+    }
+    return Array.from(new Set(this.metadata.map((m) => m.source_id)));
+  }
+
+  getIndexedMetadataMap(): Record<string, { updated_at?: string }> {
+    if (this.index.length === 0) {
+      this.loadIndex();
+    }
+    const map: Record<string, { updated_at?: string }> = {};
+    for (const m of this.metadata) {
+      if (!map[m.source_id]) {
+        map[m.source_id] = { updated_at: m.updated_at };
+      }
+    }
+    return map;
+  }
+
+  private saveIndex() {
     const indexData = JSON.stringify(this.index);
     const metadataData = JSON.stringify(this.metadata);
 
     fs.writeFileSync(path.join(this.indexPath, 'index.json'), indexData);
     fs.writeFileSync(path.join(this.indexPath, 'metadata.json'), metadataData);
-
-    return { total_chunks: this.metadata.length };
   }
 
   private loadIndex() {

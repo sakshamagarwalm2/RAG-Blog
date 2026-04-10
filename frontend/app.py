@@ -26,7 +26,21 @@ with st.sidebar:
                 r = httpx.post(f"{BACKEND_URL}/ingest/rebuild", timeout=120)
                 r.raise_for_status()
                 data = r.json()
-                st.success(f"Indexed {data['blogs']} blogs, {data['total_chunks']} chunks")
+                
+                new_blogs = data.get('newly_indexed_blogs', 0)
+                new_videos = data.get('newly_indexed_videos', 0)
+                deleted = data.get('deleted_from_index', 0)
+                
+                if new_blogs == 0 and new_videos == 0 and deleted == 0:
+                    st.info("Index is already up to date. No changes needed.")
+                else:
+                    msg = "Index updated!"
+                    if new_blogs > 0 or new_videos > 0:
+                        msg += f" Added {new_blogs} blogs and {new_videos} videos."
+                    if deleted > 0:
+                        msg += f" Removed {deleted} deleted items."
+                    st.success(msg)
+                    st.caption(f"Total chunks added: {data.get('total_chunks_added', 0)}")
             except Exception as e:
                 st.error(f"Failed: {e}")
     

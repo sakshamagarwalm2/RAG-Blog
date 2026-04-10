@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema({ timestamps: { createdAt: 'created_at', updatedAt: false } })
+@Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
 export class Video extends Document {
   id: string;
   @Prop({ required: true })
@@ -36,6 +36,9 @@ export class Video extends Document {
 
   @Prop()
   created_at: Date;
+
+  @Prop()
+  updated_at: Date;
 }
 
 export const VideoSchema = SchemaFactory.createForClass(Video);

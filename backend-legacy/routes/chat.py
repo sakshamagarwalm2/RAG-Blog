@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from backend.models.schemas import ChatRequest, ChatResponse
-from backend.services import rag_service
+from models.schemas import ChatRequest, ChatResponse
+from services import rag_service
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 

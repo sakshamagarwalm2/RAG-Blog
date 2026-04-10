@@ -10,5 +10,6 @@ import { VectorStoreModule } from '../vector-store/vector-store.module';
   imports: [BlogsModule, VideosModule, EmbeddingsModule, VectorStoreModule],
   controllers: [IngestController],
   providers: [IngestService],
+  exports: [IngestService],
 })
 export class IngestModule {}
